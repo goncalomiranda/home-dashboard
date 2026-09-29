@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Issue auto-closer
-      uses: roots/issue-closer-action@v1.1
+      uses: roots/issue-closer-action@v1.2
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         issue-close-message: "@${issue.user.login} this issue was automatically closed because it did not follow the bellow rules:\n\n<pre>\n\n\n\nIMPORTANT: Please use the following link to create a new issue:\n\nhttps://www.creative-tim.com/new-issue/material-dashboard\n\n**If your issue was not created using the app above, it will be closed immediately.**\n\n\n\nLove Creative Tim? Do you need Angular, React, Vuejs or HTML? You can visit:\n👉  https://www.creative-tim.com/bundles\n👉  https://www.creative-tim.com\n\n\n</pre>\n\n"
