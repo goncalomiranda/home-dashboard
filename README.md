@@ -150,4 +150,4 @@ The project exposes these main API endpoints:
 
 ## License
 
-This project retains the Material Dashboard 3 styling assets and theme structure, and includes custom application code layered on top of that template.
+The application code in this repository is licensed under the MIT License; see [LICENSE](LICENSE). The retained Material Dashboard 3 assets are Copyright (c) 2017 Creative Tim and are also MIT-licensed. Their copyright and license notice is included in [LICENSE](LICENSE). Other third-party components may be subject to separate licenses.
