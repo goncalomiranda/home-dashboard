@@ -14,6 +14,7 @@ export default function Sidebar({ isOpen = true }: SidebarProps) {
   const menuItems = [
     { href: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
     { href: '/tables', icon: 'table_view', label: 'Tables' },
+    { href: '/wikis', icon: 'menu_book', label: 'Wikis' },
     { href: '/admin/newsletter', icon: 'mail', label: 'Newsletter' },
     { href: '/billing', icon: 'receipt_long', label: 'Billing' },
     { href: '/virtual-reality', icon: 'view_in_ar', label: 'Virtual Reality' },
@@ -42,7 +43,7 @@ export default function Sidebar({ isOpen = true }: SidebarProps) {
           {menuItems.map((item) => (
             <li key={item.href} className="nav-item">
               <Link 
-                className={`nav-link ${pathname === item.href ? 'active bg-gradient-dark text-white' : 'text-dark'}`} 
+                className={`nav-link ${pathname === item.href || pathname.startsWith(`${item.href}/`) ? 'active bg-gradient-dark text-white' : 'text-dark'}`}
                 href={item.href}
               >
                 <i className="material-symbols-rounded opacity-5">{item.icon}</i>
