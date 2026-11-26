@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { requireAdminAuth } from '@/lib/admin-auth';
 
 // PUT /api/events/[id] - Update an event
 export async function PUT(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const authResponse = requireAdminAuth(request);
+    if (authResponse) {
+        return authResponse;
+    }
+
     try {
         const { id } = await params;
         const body = await request.json();
@@ -42,6 +48,11 @@ export async function DELETE(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const authResponse = requireAdminAuth(request);
+    if (authResponse) {
+        return authResponse;
+    }
+
     try {
         const { id } = await params;
         const result = await query(
