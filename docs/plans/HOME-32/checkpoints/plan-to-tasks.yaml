@@ -1,0 +1,61 @@
+# Plan-to-Tasks Traceability Checkpoint
+metadata:
+  generated: "2026-11-26"
+  source_plan: "docs/plans/HOME-32/plan.md"
+  target_tasks: "Task checklist embedded in docs/plans/HOME-32/plan.md"
+
+summary:
+  total_plan_items: 3
+  covered_plan_items: 3
+  missing_plan_items: 0
+  coverage_percentage: 100.0
+  total_tasks_generated: 3
+  orphan_tasks: 0
+
+phases:
+  - phase_id: "Phase-1"
+    phase_name: "Foundational"
+    items:
+      - item_id: "1.1"
+        description: "Remove the duplicate Bootstrap global declaration."
+        tasks:
+          - task_id: "T001"
+            description: "Remove the duplicate declaration from src/components/BootstrapInitializer.tsx."
+        notes: ""
+  - phase_id: "Phase-2"
+    phase_name: "Verification"
+    items:
+      - item_id: "2.1"
+        description: "Verify the production build no longer fails with TS2717."
+        tasks:
+          - task_id: "T002"
+            description: "Run npm run build and verify TS2717 is absent."
+        notes: ""
+      - item_id: "2.2"
+        description: "Smoke-test Bootstrap initialization and component behavior."
+        tasks:
+          - task_id: "T003"
+            description: "Exercise the dashboard Bootstrap runtime smoke test."
+        notes: ""
+
+missing_plan_items: []
+orphan_tasks: []
+
+upstream_trace:
+  - plan_item: "1.1"
+    source_requirements: ["REQ-001"]
+    tasks: ["T001"]
+    full_trace: "REQ-001 → Phase-1.1 → T001"
+  - plan_item: "2.1"
+    source_requirements: ["REQ-002"]
+    tasks: ["T002"]
+    full_trace: "REQ-002 → Phase-2.1 → T002"
+  - plan_item: "2.2"
+    source_requirements: ["REQ-003"]
+    tasks: ["T003"]
+    full_trace: "REQ-003 → Phase-2.2 → T003"
+
+validation:
+  passed: true
+  errors: []
+  warnings: []
