@@ -20,6 +20,40 @@ function toEST(dateString: string | null): string {
   return new Date(dateString).toLocaleString('en-US', { timeZone: 'America/New_York' });
 }
 
+async function requestNewsletterData(): Promise<{
+  content: CrawledContent[];
+  jobs: CrawlJob[];
+}> {
+  const [contentResponse, jobsResponse] = await Promise.all([
+    fetch('/api/newsletter'),
+    fetch('/api/crawl-jobs'),
+  ]);
+
+  if (!contentResponse.ok || !jobsResponse.ok) {
+    throw new Error('Failed to fetch data');
+  }
+
+  const [content, jobs] = await Promise.all([
+    contentResponse.json() as Promise<CrawledContent[]>,
+    jobsResponse.json() as Promise<CrawlJob[]>,
+  ]);
+
+  return { content, jobs };
+}
+
+async function requestEvents(from: string, to: string): Promise<Event[]> {
+  const params = new URLSearchParams();
+  if (from) params.set('date_from', from);
+  if (to) params.set('date_to', to);
+
+  const response = await fetch(`/api/events?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch events');
+  }
+
+  return response.json() as Promise<Event[]>;
+}
+
 export default function Newsletter() {
   const [crawledContent, setCrawledContent] = useState<CrawledContent[]>([]);
   const [crawlJobs, setCrawlJobs] = useState<CrawlJob[]>([]);
@@ -37,50 +71,64 @@ export default function Newsletter() {
   const [eventModal, setEventModal] = useState<{ mode: 'create' | 'edit'; data: typeof emptyEvent; id?: number } | null>(null);
   const [eventSaving, setEventSaving] = useState(false);
 
-  const fetchEvents = useCallback(async (fromOverride?: string, toOverride?: string) => {
+  const fetchEvents = useCallback(async (from: string, to: string) => {
     try {
-      const params = new URLSearchParams();
-      const from = fromOverride !== undefined ? fromOverride : dateFrom;
-      const to = toOverride !== undefined ? toOverride : dateTo;
-      if (from) params.set('date_from', from);
-      if (to) params.set('date_to', to);
-      const res = await fetch(`/api/events?${params.toString()}`);
-      if (!res.ok) throw new Error('Failed to fetch events');
-      const data = await res.json();
+      const data = await requestEvents(from, to);
       setEvents(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch events');
     }
-  }, [dateFrom, dateTo]);
-
-  useEffect(() => {
-    fetchData();
   }, []);
 
-  const fetchData = async () => {
+  useEffect(() => {
+    let active = true;
+
+    requestNewsletterData()
+      .then(({ content, jobs }) => {
+        if (!active) return;
+        setCrawledContent(content);
+        setCrawlJobs(jobs);
+      })
+      .catch((err: unknown) => {
+        if (!active) return;
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+
+    requestEvents('', '')
+      .then((data) => {
+        if (active) {
+          setEvents(data);
+        }
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch events');
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const refreshData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const [contentResponse, jobsResponse] = await Promise.all([
-        fetch('/api/newsletter'),
-        fetch('/api/crawl-jobs'),
-      ]);
-
-      if (!contentResponse.ok || !jobsResponse.ok) {
-        throw new Error('Failed to fetch data');
-      }
-
-      const contentData = await contentResponse.json();
-      const jobsData = await jobsResponse.json();
-
-      setCrawledContent(contentData);
-      setCrawlJobs(jobsData);
+      const { content, jobs } = await requestNewsletterData();
+      setCrawledContent(content);
+      setCrawlJobs(jobs);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
-    await fetchEvents();
+    await fetchEvents(dateFrom, dateTo);
   };
 
   const handleViewContent = (item: CrawledContent) => {
@@ -117,9 +165,9 @@ export default function Newsletter() {
 
       setDeleteItem(null);
       if (deleteItem.type === 'event') {
-        await fetchEvents();
+        await fetchEvents(dateFrom, dateTo);
       } else {
-        await fetchData();
+        await refreshData();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -203,7 +251,7 @@ export default function Newsletter() {
       }
 
       setEventModal(null);
-      await fetchEvents();
+      await fetchEvents(dateFrom, dateTo);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save event');
     } finally {
@@ -212,12 +260,13 @@ export default function Newsletter() {
   };
 
   const handleFilterEvents = () => {
-    fetchEvents();
+    fetchEvents(dateFrom, dateTo);
   };
 
   const handleClearFilter = () => {
     setDateFrom('');
     setDateTo('');
+    fetchEvents('', '');
   };
 
   const handleFilterNextWeekend = () => {
@@ -238,13 +287,6 @@ export default function Newsletter() {
     setDateTo(newTo);
     fetchEvents(newFrom, newTo);
   };
-
-  // Re-fetch events when filters are cleared
-  useEffect(() => {
-    if (!dateFrom && !dateTo && !loading) {
-      fetchEvents();
-    }
-  }, [dateFrom, dateTo, loading, fetchEvents]);
 
   const getStatusBadgeClass = (status: string) => {
     switch (status.toLowerCase()) {
