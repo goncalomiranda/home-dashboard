@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { requireAdminAuth } from '@/lib/admin-auth';
 
 // GET /api/events - List events with optional date range filter
 export async function GET(request: Request) {
+    const authResponse = requireAdminAuth(request);
+    if (authResponse) {
+        return authResponse;
+    }
+
     try {
         const { searchParams } = new URL(request.url);
         const dateFrom = searchParams.get('date_from');
@@ -40,6 +46,11 @@ export async function GET(request: Request) {
 
 // POST /api/events - Create a new event
 export async function POST(request: Request) {
+    const authResponse = requireAdminAuth(request);
+    if (authResponse) {
+        return authResponse;
+    }
+
     try {
         const body = await request.json();
         const { title, date_start, date_end, location, detailed_location, description, category } = body;

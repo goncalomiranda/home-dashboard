@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { requireAdminAuth } from '@/lib/admin-auth';
 
 const LLM_API_URL = process.env.LLM_API_URL || 'http://localhost:3100/api/v1/knowledge/query-slm';
 const LLM_API_KEY = process.env.LLM_API_KEY || '';
@@ -18,6 +19,11 @@ interface ExtractedEvent {
 
 // POST /api/ai-summary - Extract events from content via LLM
 export async function POST(request: Request) {
+    const authResponse = requireAdminAuth(request);
+    if (authResponse) {
+        return authResponse;
+    }
+
     try {
         const body = await request.json();
         const { id, type } = body;

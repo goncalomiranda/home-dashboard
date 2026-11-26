@@ -64,11 +64,17 @@ POSTGRES_USER=your_db_user
 POSTGRES_PASSWORD=your_db_password
 POSTGRES_DATABASE=your_db_name
 
+ADMIN_USERNAME=your_admin_username
+ADMIN_PASSWORD=use_a_long_random_password
+
 LLM_API_URL=http://localhost:3100/api/v1/knowledge/query-slm
 LLM_API_KEY=your_llm_api_key_here
 ```
 
 The database connection is initialized in `src/lib/db.ts`.
+The admin UI and API routes require HTTP Basic authentication using `ADMIN_USERNAME`
+and `ADMIN_PASSWORD`. The app fails closed with a 503 response if either value is
+missing. Use a strong, unique password and deploy the application behind HTTPS.
 
 ## Database setup
 
