@@ -112,6 +112,15 @@ Your event table should also exist before using the newsletter admin screen for 
 The reproducible install, lint, and production-build baseline is recorded in
 [docs/repository-quality-baseline.md](docs/repository-quality-baseline.md).
 
+## Dependabot updates
+
+Dependabot checks npm and GitHub Actions dependencies weekly. To run a version
+update check manually on GitHub, open **Insights → Dependency graph →
+Dependabot**, select **Recent update jobs** for the ecosystem, and click
+**Check for updates**. Dependabot version updates must be enabled and the
+configuration must be present on the default branch. See
+[GitHub's instructions](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/re-run-dependabot-jobs).
+
 ## Run locally
 
 Start the app in development mode:
