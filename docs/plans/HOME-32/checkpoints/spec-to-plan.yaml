@@ -1,0 +1,51 @@
+# Spec-to-Plan Traceability Checkpoint
+metadata:
+  generated: "2026-11-26"
+  source_spec: "https://mirandags.atlassian.net/browse/HOME-32"
+  target_plan: "docs/plans/HOME-32/plan.md"
+
+summary:
+  total_requirements: 3
+  covered_requirements: 3
+  missing_requirements: 0
+  coverage_percentage: 100.0
+
+requirements:
+  - req_id: "REQ-001"
+    req_description: "There is one compatible global Bootstrap type declaration."
+    priority: "High"
+    plan_mapping:
+      phase: "Phase-1"
+      phase_name: "Foundational"
+      items:
+        - item_id: "1.1"
+          description: "Remove the redundant component-local Window.bootstrap declaration and retain the shared concrete type."
+    notes: "The Jira acceptance criterion is expressed as a normalized requirement ID."
+  - req_id: "REQ-002"
+    req_description: "npm run build completes without the TS2717 error."
+    priority: "High"
+    plan_mapping:
+      phase: "Phase-2"
+      phase_name: "Verification"
+      items:
+        - item_id: "2.1"
+          description: "Run the production build and confirm TS2717 is gone."
+    notes: "The Jira acceptance criterion is expressed as a normalized requirement ID."
+  - req_id: "REQ-003"
+    req_description: "Bootstrap initialization and component behavior are smoke-tested."
+    priority: "High"
+    plan_mapping:
+      phase: "Phase-2"
+      phase_name: "Verification"
+      items:
+        - item_id: "2.2"
+          description: "Smoke-test Bootstrap loading, initialization, dropdown behavior, and tooltip behavior."
+    notes: "The Jira acceptance criterion is expressed as a normalized requirement ID."
+
+missing_requirements: []
+orphan_plan_items: []
+
+validation:
+  passed: true
+  errors: []
+  warnings: []

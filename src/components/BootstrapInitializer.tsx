@@ -2,14 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-// Extend Window interface to include Bootstrap
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    bootstrap: any;
-  }
-}
-
 export default function BootstrapInitializer() {
   const [initialized, setInitialized] = useState(false);
 
