@@ -34,7 +34,7 @@ Implemented routes in the app include:
 
 ## Tech stack
 
-- Next.js 15
+- Next.js 16
 - React 19
 - TypeScript
 - PostgreSQL via `pg`
@@ -43,14 +43,14 @@ Implemented routes in the app include:
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 20.9+
 - npm
 - PostgreSQL database with the required tables and permissions
 
 ## Installation
 
 ```bash
-npm install
+npm ci
 ```
 
 ## Environment configuration
@@ -106,6 +106,11 @@ CREATE TABLE IF NOT EXISTS core.crawl_jobs (
 ```
 
 Your event table should also exist before using the newsletter admin screen for event management.
+
+## Repository quality baseline
+
+The reproducible install, lint, and production-build baseline is recorded in
+[docs/repository-quality-baseline.md](docs/repository-quality-baseline.md).
 
 ## Run locally
 
