@@ -9,7 +9,7 @@ const baseUrl = process.env.EDITORIAL_TEST_BASE_URL;
 const username = process.env.ADMIN_USERNAME;
 const password = process.env.ADMIN_PASSWORD;
 
-test('editorial migration and review API work against an isolated database', async () => {
+test('editorial and newsletter migrations plus review API work against an isolated database', async () => {
     assert.ok(databaseUrl, 'Set EDITORIAL_TEST_DATABASE_URL to an empty test database.');
     assert.ok(baseUrl, 'Set EDITORIAL_TEST_BASE_URL to an app using that test database.');
     assert.ok(username && password, 'Set ADMIN_USERNAME and ADMIN_PASSWORD.');
@@ -23,6 +23,11 @@ test('editorial migration and review API work against an isolated database', asy
             (await client.query("SELECT to_regnamespace('editorial') AS schema")).rows[0].schema,
             null,
             'The test database must not already contain the editorial schema.',
+        );
+        assert.equal(
+            (await client.query("SELECT to_regnamespace('newsletter') AS schema")).rows[0].schema,
+            null,
+            'The test database must not already contain the newsletter schema.',
         );
 
         await client.query(`
@@ -45,6 +50,12 @@ test('editorial migration and review API work against an isolated database', asy
         await client.query(migration);
         const existing = await client.query('SELECT * FROM public.crawled_content WHERE id = 1');
         assert.equal(existing.rows[0].content, 'Original content');
+
+        const newsletterMigration = await readFile(
+            new URL('../migrations/0002_newsletter_issues.sql', import.meta.url),
+            'utf8',
+        );
+        await client.query(newsletterMigration);
 
         await assert.rejects(
             client.query("INSERT INTO editorial.candidates (id, candidate_type, status) VALUES ('invalid', 'event', 'INVALID')"),
@@ -143,6 +154,104 @@ test('editorial migration and review API work against an isolated database', asy
         const approved = await request('/api/editorial/candidates?status=APPROVED');
         assert.equal(approved.status, 200);
         assert.equal(approved.body.candidates[0].startDate, '2027-06-05');
+
+        const issueId = randomUUID();
+        await client.query(`
+            INSERT INTO newsletter.issues
+                (id, title, publication_date, window_start, window_end)
+            VALUES ($1, 'June issue', '2027-06-12', '2027-06-07', '2027-06-13')
+        `, [issueId]);
+        const issue = await client.query(`
+            SELECT title, publication_date::text, window_start::text, window_end::text,
+                   status, created_at, updated_at
+            FROM newsletter.issues
+            WHERE id = $1
+        `, [issueId]);
+        assert.deepEqual(
+            {
+                title: issue.rows[0].title,
+                publication_date: issue.rows[0].publication_date,
+                window_start: issue.rows[0].window_start,
+                window_end: issue.rows[0].window_end,
+                status: issue.rows[0].status,
+            },
+            {
+                title: 'June issue',
+                publication_date: '2027-06-12',
+                window_start: '2027-06-07',
+                window_end: '2027-06-13',
+                status: 'DRAFT',
+            },
+        );
+        assert.ok(issue.rows[0].created_at);
+        assert.ok(issue.rows[0].updated_at);
+        await client.query(`
+            INSERT INTO newsletter.issue_items
+                (issue_id, candidate_id, headline_snapshot, summary_snapshot, section, position)
+            VALUES ($1, $2, 'Edited market headline', 'Edited market summary', 'Events', 1)
+        `, [issueId, eventId]);
+        const issueItem = await client.query(`
+            SELECT candidate_id, candidate_status, headline_snapshot, summary_snapshot,
+                   section, position, created_at, updated_at
+            FROM newsletter.issue_items
+            WHERE issue_id = $1
+        `, [issueId]);
+        assert.deepEqual(
+            {
+                candidate_id: issueItem.rows[0].candidate_id,
+                candidate_status: issueItem.rows[0].candidate_status,
+                headline_snapshot: issueItem.rows[0].headline_snapshot,
+                summary_snapshot: issueItem.rows[0].summary_snapshot,
+                section: issueItem.rows[0].section,
+                position: issueItem.rows[0].position,
+            },
+            {
+                candidate_id: eventId,
+                candidate_status: 'APPROVED',
+                headline_snapshot: 'Edited market headline',
+                summary_snapshot: 'Edited market summary',
+                section: 'Events',
+                position: 1,
+            },
+        );
+        assert.ok(issueItem.rows[0].created_at);
+        assert.ok(issueItem.rows[0].updated_at);
+        await assert.rejects(
+            client.query(`
+                INSERT INTO newsletter.issue_items
+                    (issue_id, candidate_id, headline_snapshot, summary_snapshot, section, position)
+                VALUES ($1, $2, 'Draft candidate', 'Not approved', 'Events', 2)
+            `, [issueId, discoveredId]),
+            { code: '23503' },
+        );
+        await assert.rejects(
+            client.query(`
+                INSERT INTO newsletter.issue_items
+                    (issue_id, candidate_id, headline_snapshot, summary_snapshot, section, position)
+                VALUES ($1, $2, 'Duplicate candidate', 'Already included', 'Events', 2)
+            `, [issueId, eventId]),
+            { code: '23505' },
+        );
+        await client.query(`
+            INSERT INTO newsletter.publications
+                (issue_id, beehiiv_url, beehiiv_external_id, published_at)
+            VALUES ($1, 'https://alongthelake.beehiiv.com/p/june', 'pub-june', now())
+        `, [issueId]);
+        const publication = await client.query(
+            'SELECT beehiiv_url, beehiiv_external_id, published_at FROM newsletter.publications WHERE issue_id = $1',
+            [issueId],
+        );
+        assert.deepEqual(
+            {
+                beehiiv_url: publication.rows[0].beehiiv_url,
+                beehiiv_external_id: publication.rows[0].beehiiv_external_id,
+            },
+            {
+                beehiiv_url: 'https://alongthelake.beehiiv.com/p/june',
+                beehiiv_external_id: 'pub-june',
+            },
+        );
+        assert.ok(publication.rows[0].published_at);
 
         const rejection = await request(`/api/editorial/candidates/${articleId}/reject`, {
             method: 'POST',
