@@ -68,6 +68,21 @@ test('event candidates require a start date before approval', () => {
     );
 });
 
+test('corrects candidate and event details while in review', () => {
+    const corrected = discover()
+        .submitForReview()
+        .correctDetails({
+            headline: 'Updated summer market',
+            venue: 'Port Credit Memorial Park',
+            location: 'Port Credit',
+        });
+
+    assert.equal(corrected.state.status, 'NEEDS_REVIEW');
+    assert.equal(corrected.state.headline, 'Updated summer market');
+    assert.equal(corrected.state.venue, 'Port Credit Memorial Park');
+    assert.equal(corrected.state.location, 'Port Credit');
+});
+
 test('rejects a candidate with a non-empty reason and records the decision time', () => {
     const rejected = discover()
         .submitForReview()

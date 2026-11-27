@@ -492,6 +492,7 @@ The domain model should not import Next.js, React, `pg`, Crawl4AI, or Beehiiv SD
 ListCandidatesForReview
 CreateCandidateFromCrawledContent
 CorrectCandidateDetails
+SubmitCandidateForReview
 ApproveCandidate
 RejectCandidate
 CreateNewsletterIssue
@@ -574,6 +575,7 @@ GET    /api/editorial/candidates
 POST   /api/editorial/candidates
 GET    /api/editorial/candidates/{id}
 PUT    /api/editorial/candidates/{id}
+POST   /api/editorial/candidates/{id}/submit
 POST   /api/editorial/candidates/{id}/approve
 POST   /api/editorial/candidates/{id}/reject
 
