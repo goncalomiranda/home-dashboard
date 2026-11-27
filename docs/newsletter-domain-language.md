@@ -1,91 +1,200 @@
-# Along the lake Domain
+# Along the Lake: Domain Language and Context Map
 
-## Business Domain
+## Purpose and evidence
 
-A business domain defines a company’s main area of activity, the core service provided to clients. A company may have different business domains.
+This document is the canonical glossary and first context map for Along the
+Lake. It records both the observed workflow and the proposed model; proposed
+boundaries must not be mistaken for features already implemented.
 
-**ATL**
-`Business Domain`: Local Media & Community Information
+The current-system notes and dashboard code confirm that crawled pages are
+stored and displayed, crawl jobs can be monitored, records in `core.event` can
+be managed, and AI summaries can be requested. The inspected crawler has no
+Beehiiv publishing step. The operator's complete manual process between
+crawled content and Beehiiv has not been verified. See
+[Current System](./current-system.md) and
+[Along the Lake project brief](./along-the-lake-ddd-project-brief.md).
 
-`Business Goal`: Help residents discover local events, businesses, and experiences in Clarkson, Lorne Park, Port Credit, and Lakeview through a weekly newsletter.
+## Business domain and subdomains
 
----
+The business domain is local media and community information. Along the Lake
+helps residents discover local events, businesses, places, and experiences in
+Clarkson, Lorne Park, Port Credit, and Lakeview through a weekly newsletter.
 
-## Subdomain
-
-A subdomain is a specific area of business activity that helps a company achieve its goals.
-A business consists of multiple subdomains working together. Each has a different responsibility, but all contribute to delivering value to customers.
-
-**ATL**: A local newsletter business needs to discover events, create content, publish newsletters, attract subscribers, and generate revenue.
-
-### Types of subdomains
-
-#### Core subdomain
-
-A core subdomain is the part of the business that makes business special and differentiate it from other competitors. It does not have to be software. It can be your knowledge, process, relationships, data, brand, expertise or a unique way of doing something.
-
-**ATL**: Local Discovery & Curation
-Finding, filtering, understanding, and selecting the most relevant local events, businesses, places, and experiences for residents.
-Example:
-Newsletter A simply lists 40 events.
-Along the Lake says:
-"If you have young kids, these are the 3 events worth considering this weekend. If you want a date night, try this new place in Port Credit. And this small waterfront event isn't showing up on the usual event websites."
-
-#### Generic subdomain
-
-Business activities that all companies perform in the same way. Usually companies buy it or use an existing solution. Examples: Email delivery solution, payments platform, authentication.
-
-**ATL**: Newsletter delivery using Beehiv; sending emails via sendgrid or use nodemailer, Oauth solution for authentication.
-
-#### Supporting subdomain
-
-A business capability needed to support the core business, but which does not itself provide a competitive advantage. It is usually specific to how the business operates and tends to contain simpler business rules than the core subdomain.
-
-**ATL**:
-
-- Content acquisition : Fetch and preserve material from local sources
-- Candidate extraction : Convert page content into structured possibilities
-
-
-#### ATL List of subdomain
-
-| Subdomain | Purpose | Classification |
+| Subdomain | Purpose | Working classification |
 |---|---|---|
-| Local discovery & editorial curation | Find interesting local opportunities and decide what is relevant, trustworthy, and worth recommending | **Core** |
-| Content acquisition | Fetch and preserve material from local websites, event pages, feeds, and other sources | **Supporting** |
-| Candidate extraction | Convert acquired content into structured event, business, place, or experience candidates | **Supporting** |
-| Content catalog | Store and manage discovered events, businesses, places, and experiences | **Supporting** |
-| Editorial workflow | Review, approve, reject, enrich, and prepare candidates for publication | **Supporting** |
-| Newsletter production | Assemble approved content into a coherent weekly issue | **Supporting** |
-| Subscriber management | Manage subscribers, preferences, subscriptions, and unsubscribe requests | **Generic** |
-| Newsletter delivery | Send the finished newsletter reliably to subscribers | **Generic** |
-| Authentication & authorization | Authenticate administrators and control access to internal tools | **Generic** |
-| AI summarization | Generate draft summaries or descriptions while leaving editorial decisions to the editor | **Generic / Supporting capability** |
-| Analytics | Measure newsletter opens, clicks, content engagement, and subscriber growth | **Generic / Supporting** |
-| Local partnerships | Manage relationships with businesses, organizers, and community groups | **Supporting initially; potentially Core later** |
+| Local discovery and editorial curation | Decide what is relevant, trustworthy, and worth recommending | Core |
+| Content acquisition | Fetch and preserve material from local sources | Supporting |
+| Candidate extraction | Turn acquired material into structured possibilities for editorial review | Supporting capability within Editorial; not a separate context |
+| Newsletter production | Assemble approved candidates into a coherent issue | Supporting for now; see open question |
+| Beehiiv publishing | Deliver the finished issue through an external platform | Generic integration |
+| AI assistance | Suggest extracted details or summaries without making editorial decisions | Generic/supporting capability |
 
-## 6. Ubiquitous Language
+The differentiating work is local discovery and editorial judgment, not
+crawling or newsletter delivery.
 
-Use these terms consistently when discussing the domain and, where appropriate, in code, APIs, database models, Jira tickets, and documentation.
+## Bounded contexts
 
-The vocabulary may be scoped to a particular bounded context rather than shared by the entire system.
+The contexts below are model boundaries, not deployment boundaries. Editorial
+and Newsletter Production may remain modules in the same Next.js application.
+The ownership descriptions are the target model; the current implementation
+does not yet implement all of these models.
 
-| Term | Definition |
-|---|---|
-| Source | A local information source monitored for potentially relevant content, such as a website or feed |
-| Crawl run | One attempt to retrieve content from one or more sources |
-| Crawled page | The stable identity of a discovered web page, normally identified by its canonical URL |
-| Page snapshot | The content retrieved from a crawled page at a particular point in time |
-| Candidate | A discovered event, place, business, or experience that may be worth publishing but has not yet received an editorial decision |
-| Provenance | Evidence describing where a candidate came from, including its source and supporting snapshot |
-| Category | An editorial classification used to organize content, such as Events, Food, or Hidden Gems |
-| Neighbourhood | The local area associated with content, such as Clarkson, Lorne Park, Port Credit, or Lakeview |
-| Event | A time-bound local occurrence that may be considered for publication |
-| Venue | The physical place where an event or experience takes place |
-| Organizer | A person, business, or organization responsible for running an event |
-| Editorial decision | The decision to approve, reject, or request further review of a candidate |
-| Approved candidate | A candidate that has been accepted by the editor and can be used in newsletter production |
-| Newsletter issue | A weekly edition of Along the Lake being prepared for publication |
-| Issue section | A named grouping of content within a newsletter issue, such as Events, Food, or Hidden Gems |
-| Issue item | The edited presentation of an approved candidate within a particular newsletter issue |
-| Publication | A recorded release of a newsletter issue through a publishing channel |
+### Content Acquisition
+
+**Purpose:** Retrieve source material and preserve what was observed.
+
+**Owns:** source configuration, crawl runs, fetched pages and page snapshots,
+fetch outcomes and failures, and content hashes.
+
+**Excludes:** deciding whether material is locally relevant, creating or
+approving editorial candidates, composing newsletter issues, and publishing
+through Beehiiv.
+
+**Answers:** What was fetched, from where, when, and with what result?
+
+**Current evidence:** The crawler stores crawled content and crawl-job records.
+Source configuration and a stable page-snapshot model are not established by
+the inspected application.
+
+### Editorial
+
+**Purpose:** Decide what is worth including in Along the Lake and prepare
+accurate, reviewable candidates.
+
+**Owns:** editorial candidates, candidate type and details, category and
+neighbourhood classification, provenance references, editorial decisions,
+and duplicate decisions.
+
+**Excludes:** fetching source pages, owning crawl-run outcomes, arranging
+approved material into an issue, and sending or scheduling a newsletter.
+
+**Answers:** Is this information suitable for Along the Lake, and what must be
+corrected or decided before it can be used?
+
+**Current evidence:** The application exposes crawled content and manages
+records in `core.event`; the candidate review and approval lifecycle is
+proposed, not confirmed as implemented. Existing event records must not be
+silently treated as editorial candidates.
+
+Candidate extraction and AI summarization are capabilities that support
+Editorial. Their output is a suggestion for an editor, not an editorial
+decision.
+
+### Newsletter Production
+
+**Purpose:** Turn approved editorial material into a specific, coherent
+weekly issue.
+
+**Owns:** newsletter issues, issue sections, issue items, ordering, issue
+readiness, preview, and the issue content prepared for handoff.
+
+**Excludes:** fetching source material, approving or rejecting candidates,
+subscriber management, email delivery, and claiming external publication
+before it is confirmed.
+
+**Answers:** What exactly is in this issue, and is it ready for the publishing
+handoff?
+
+**Current evidence:** Issue composition and a production aggregate are
+proposed; the inspected application does not establish a complete issue
+workflow.
+
+### Beehiiv Integration
+
+**Purpose:** Hand a publishable issue to Beehiiv and record the external
+publication outcome.
+
+**Owns:** translation or export of an issue, Beehiiv-specific identifiers and
+URLs, handoff details, and the recorded publication result.
+
+**Excludes:** editorial decisions, issue composition, subscriber lifecycle,
+and newsletter content ownership after handoff.
+
+**Answers:** How was the finished issue delivered through Beehiiv, and what
+external result can be verified?
+
+**Current evidence:** The inspected API and worker have no Beehiiv endpoint or
+publishing step. For Milestone 1, treat this as a manual adapter: prepare or
+export the issue, transfer it in Beehiiv, then record the confirmed URL and
+publication time. The operator's exact intermediate steps remain unknown.
+
+## Context map
+
+```mermaid
+flowchart LR
+    A["Content Acquisition"] -->|"Page snapshot and provenance"| E["Editorial"]
+    AI["AI / extraction capability"] -->|"Unapproved suggestions"| E
+    E -->|"Approved candidate"| N["Newsletter Production"]
+    N -->|"Publishable issue"| B["Beehiiv Integration"]
+    B -->|"Confirmed URL and publication result"| N
+```
+
+The arrows describe information handoffs, not automated integrations. In
+particular, Beehiiv publication is manual for Milestone 1. Editorial remains
+the authority for candidate decisions; Newsletter Production consumes only
+approved candidates.
+
+## Ubiquitous language
+
+Use the precise term for the object and context. This glossary is canonical
+for project documentation and should guide code, API, database, and Jira
+naming where practical.
+
+| Term | Definition | Context |
+|---|---|---|
+| Source | A website or feed monitored for potentially relevant local information | Content Acquisition |
+| Crawl run | One attempt to retrieve content from one or more sources | Content Acquisition |
+| Crawled page | The stable identity of a discovered web page, normally identified by its canonical URL | Content Acquisition |
+| Page snapshot | Content retrieved from a crawled page at a particular time | Content Acquisition |
+| Fetch outcome | The recorded result of attempting to retrieve a source or page | Content Acquisition |
+| Candidate | A potential newsletter item awaiting an editorial decision | Editorial |
+| Candidate extraction | Producing structured suggestions from acquired material for editorial review | Editorial capability |
+| Provenance | Evidence linking a candidate to its source material, including a snapshot when available | Editorial |
+| Local event | A time-bound occurrence that may be considered for publication | Editorial |
+| Venue | A place or organization associated with an event or experience | Editorial |
+| Organizer | A person, business, or organization responsible for an event | Editorial |
+| Category | An editorial classification, such as Events, Food, or Hidden Gems | Editorial |
+| Neighbourhood | The local area associated with content: Clarkson, Lorne Park, Port Credit, or Lakeview | Editorial |
+| Editorial decision | Approval, rejection, or request for further review of a candidate | Editorial |
+| Approved candidate | A candidate accepted by an editor and eligible for newsletter production | Editorial |
+| Newsletter issue | The weekly publication being assembled | Newsletter Production |
+| Issue section | A named grouping in an issue, such as Events, Food, or Hidden Gems | Newsletter Production |
+| Issue item | The edited presentation of one approved candidate in one issue | Newsletter Production |
+| Publishable issue | An issue prepared and approved for handoff to the publishing channel | Newsletter Production |
+| Publication | A confirmed external release of an issue through Beehiiv | Beehiiv Integration |
+| Preview | A rendering of issue content that has not itself been published | Newsletter Production |
+
+### Terms to avoid without qualification
+
+- Use `Local event` for a community occurrence; use `domain event` for a
+  software-domain fact.
+- Avoid `content` when `Page snapshot`, `Candidate`, or `Issue item` is more
+  precise.
+- Avoid `item` without specifying `Candidate` or `Issue item`.
+- Qualify `status` as crawl-run, candidate, or issue status.
+- Do not call a preview or export `published`. Reserve `Publication` for a
+  confirmed external release.
+- Use `Beehiiv` consistently (not `Beehiv`).
+
+## Disagreements and open questions
+
+These are deliberately visible rather than silently resolved. Update this
+section when workflow evidence or an explicit product decision resolves them.
+
+| Topic | What is known or disagrees | Question / next evidence |
+|---|---|---|
+| Core subdomain | The project brief classifies both Editorial and Newsletter Production as core; the earlier domain-language draft describes Editorial curation as core and production as supporting. This document treats editorial judgment as core and production as supporting for now. | Confirm whether issue composition itself provides differentiated value, or primarily enables editorial curation. |
+| Existing `core.event` records | The application manages event records, while the target model introduces Editorial Candidates. Their lifecycle and data equivalence are not established. | Determine which records can become candidates and what migration or provenance is required; do not silently reinterpret existing rows. |
+| Candidate extraction ownership | Extraction is listed as a supporting subdomain in one draft, but the context map has no separate extraction context. | Keep it as an Editorial-supporting capability unless independent ownership or lifecycle is demonstrated. |
+| Local event vs. domain event | `Event` is used for local occurrences and can also mean a software-domain event. | Use `Local event` in business language and qualify software events in code and docs. |
+| Publication state | The target model records publication, but current code does not establish an integrated or verified Beehiiv workflow. A preview is not a publication. | Confirm who records the Beehiiv URL/time and what evidence counts as a successful publication. |
+| Manual Beehiiv workflow | The inspected crawler has no publishing integration; all steps after acquisition are not verified. | Walk through the operator's actual process, including editing, formatting, approval, scheduling, and confirmation. |
+| Snapshot and source ownership | The current code stores crawled content and crawl jobs; it does not establish a stable snapshot model or source catalog. | Confirm the crawler's actual source and page identity behavior before implementing these as durable domain concepts. |
+
+## Related documentation
+
+- [Current System](./current-system.md) describes observed components and
+  workflow, including unknowns.
+- [Along the Lake project brief](./along-the-lake-ddd-project-brief.md)
+  contains the delivery plan and tactical model; it should link here rather
+  than maintain a competing glossary.

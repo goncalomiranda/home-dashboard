@@ -203,127 +203,54 @@ This proves the product before source discovery, extraction, and publishing are 
 
 ### Business domain
 
-The business domain is **local newsletter publishing**.
+The business domain is **local media and community information**, delivered
+through local newsletter publishing.
 
 ### Subdomains
 
 | Subdomain | Purpose | Classification for this product |
 |---|---|---|
-| Editorial curation | Decide what is relevant, trustworthy, and worth publishing | Core |
-| Newsletter production | Assemble approved material into a coherent weekly issue | Core |
+| Local discovery and editorial curation | Decide what is relevant, trustworthy, and worth recommending | Core |
 | Content acquisition | Fetch and preserve material from local sources | Supporting |
-| Candidate extraction | Convert page content into structured possibilities | Supporting |
-| Beehiiv publishing | Deliver the finished issue | Generic/supporting integration |
-| AI summarization | Assist the editor without owning editorial decisions | Generic/supporting |
+| Candidate extraction | Turn acquired material into structured possibilities for review | Supporting capability within Editorial |
+| Newsletter production | Assemble approved candidates into a coherent weekly issue | Supporting for now; see the open question in the canonical domain-language document |
+| Beehiiv publishing | Deliver the finished issue through an external platform | Generic integration |
+| AI assistance | Suggest extracted details or summaries without making editorial decisions | Generic/supporting capability |
 
-The core domain is not web crawling. The differentiating work is selecting and shaping a useful local guide.
+The core domain is local discovery and editorial judgment, not web crawling or newsletter delivery. The detailed definitions, context boundaries, workflow evidence, and unresolved classification question are maintained in the canonical [domain-language and context-map document](./newsletter-domain-language.md).
 
 ### Bounded contexts
 
-#### Content Acquisition
-
-Owns:
-
-- Sources
-- Crawl runs
-- Fetched pages
-- Page snapshots
-- Fetch failures
-- Content hashes
-
-It answers:
-
-> What did we fetch, from where, when, and with what result?
-
-#### Editorial
-
-Owns:
-
-- Editorial candidates
-- Structured local-event details
-- Classification
-- Neighbourhood relevance
-- Provenance
-- Approval and rejection
-- Duplicate decisions
-
-It answers:
-
-> Is this information suitable for Along the Lake?
-
-#### Newsletter Production
-
-Owns:
-
-- Newsletter issues
-- Issue sections
-- Issue items
-- Ordering
-- Readiness
-- Preview
-- Publication records
-
-It answers:
-
-> What exactly will readers receive this week?
-
-#### Beehiiv Integration
-
-Owns:
-
-- Translation from an internal issue to Beehiiv content
-- Beehiiv identifiers and URLs
-- Publication requests and outcomes
-
-It answers:
-
-> How is the finished issue delivered through Beehiiv?
-
-For Milestone 1, Beehiiv Integration is a manual adapter: export the issue, paste it into Beehiiv, and record the result.
+The target model has four contexts: Content Acquisition, Editorial, Newsletter
+Production, and Beehiiv Integration. Their responsibilities, explicit
+exclusions, current-state evidence, and handoff contracts are defined in the
+canonical [domain-language and context-map document](./newsletter-domain-language.md).
 
 ### Context map
 
 ```mermaid
 flowchart LR
-    A["Content Acquisition"] -->|"Page snapshot"| E["Editorial"]
+    A["Content Acquisition"] -->|"Page snapshot and provenance"| E["Editorial"]
+    AI["AI / extraction capability"] -->|"Unapproved suggestions"| E
     E -->|"Approved candidate"| N["Newsletter Production"]
     N -->|"Publishable issue"| B["Beehiiv Integration"]
-    AI["LLM provider"] -->|"Suggested extraction or summary"| E
+    B -->|"Confirmed URL and publication result"| N
 ```
 
-The dashboard can implement Editorial and Newsletter Production as modules in one Next.js application. Bounded contexts are model boundaries, not a requirement for separate deployments.
+The arrows represent information handoffs, not automated integrations. Beehiiv
+publication is manual for Milestone 1. Editorial and Newsletter Production
+may remain modules in one Next.js application; bounded contexts do not require
+separate deployments.
 
 ---
 
 ## 6. Ubiquitous language
 
-Use these terms consistently in conversation, code, database names, APIs, Jira, and blog posts.
-
-| Term | Definition |
-|---|---|
-| Source | A website or feed monitored for local information |
-| Crawl run | One attempt to fetch content from one or more sources |
-| Crawled page | A stable page identity represented by its canonical URL |
-| Page snapshot | The content fetched from a page at a particular time |
-| Candidate | A potential newsletter item awaiting an editorial decision |
-| Provenance | The source and snapshot supporting a candidate |
-| Category | Events, Food, or Hidden Gems |
-| Neighbourhood | Clarkson, Lorne Park, Port Credit, or Lakeview |
-| Local event | A time-bound occurrence that may become a candidate |
-| Venue | The place or organization hosting an event or experience |
-| Editorial decision | Approval, rejection, or request for more review |
-| Newsletter issue | The weekly publication being assembled |
-| Issue section | A named grouping such as Events, Food, or Hidden Gems |
-| Issue item | The edited presentation of one approved candidate in one issue |
-| Publication | The recorded delivery of an issue through Beehiiv |
-
-### Words to avoid when a more precise term exists
-
-- `content` when the object is a page snapshot, candidate, or issue item
-- `event` when referring to a software/domain event rather than a local community event
-- `item` without specifying candidate or issue item
-- `status` without specifying candidate status, crawl-run status, or issue status
-- `published` when the system only generated a preview
+The canonical glossary, context-scoped definitions, and terms to avoid are
+maintained in [Domain Language and Context Map](./newsletter-domain-language.md).
+Use that glossary consistently in conversation, code, database names, APIs,
+Jira, and project documentation. Keep this brief focused on the tactical model
+and delivery plan rather than maintaining a second glossary.
 
 ---
 
@@ -886,7 +813,7 @@ Launch the crawler using the virtual environment’s Python executable without `
 
 **Acceptance criteria**
 
-- The glossary in this brief is reviewed and adjusted against the real workflow.
+- The canonical glossary in `docs/newsletter-domain-language.md` is reviewed and adjusted against the real workflow.
 - Content Acquisition, Editorial, Newsletter Production, and Beehiiv Integration are documented.
 - Each context has explicit responsibilities and exclusions.
 - Important disagreements or unanswered questions are recorded.
