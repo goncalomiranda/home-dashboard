@@ -7,7 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --experimental-default-type=module --test src/domain/editorial/candidate.test.mjs src/lib/editorial/candidate-filters.test.mjs src/lib/editorial/candidate-request.test.mjs",
+    "test": "node --experimental-strip-types --experimental-default-type=module --test src/domain/editorial/candidate.test.mjs src/domain/newsletter/issue.test.mjs src/lib/editorial/candidate-filters.test.mjs src/lib/editorial/candidate-request.test.mjs",
     "test:editorial-integration": "node --test tests/editorial-integration.test.mjs"
   },
   "dependencies": {
