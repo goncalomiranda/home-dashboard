@@ -31,3 +31,16 @@ test('rejection requires a non-empty reason', () => {
         CandidateRequestValidationError,
     );
 });
+
+test('accepts empty or valid event dates and rejects malformed dates', () => {
+    assert.deepEqual(
+        parseCandidateDetails({ startDate: '2028-02-29', endDate: '' }),
+        { startDate: '2028-02-29', endDate: '' },
+    );
+    for (const date of ['2027-02-29', '2027-13-01', '0000-01-01', 'not-a-date']) {
+        assert.throws(
+            () => parseCandidateDetails({ startDate: date }),
+            CandidateRequestValidationError,
+        );
+    }
+});

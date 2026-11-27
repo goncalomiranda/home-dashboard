@@ -39,6 +39,8 @@ Thumbs.db
 # Database dumps
 *.sql
 !setup-database.sql
+!migrations/
+!migrations/*.sql
 
 # Coverage / test output
 coverage/
