@@ -152,6 +152,35 @@ test('editorial migration and review API work against an isolated database', asy
         assert.equal(rejection.status, 200);
         assert.equal(rejection.body.status, 'REJECTED');
         assert.equal(rejection.body.rejectionReason, 'Outside the editorial scope');
+
+        // Test creating a candidate from crawled content
+        const createFromCrawled = await request('/api/editorial/candidates/from-crawled', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                crawledContentId: 1,
+                headline: 'Community Gathering',
+                summary: 'Join us for a local community gathering.',
+                category: 'Community',
+                neighbourhoods: ['Port Credit', 'Lakeview'],
+                startDate: '2027-07-15',
+                venue: 'Community Hall',
+                location: 'Port Credit',
+            }),
+        });
+        assert.equal(createFromCrawled.status, 201);
+        assert.ok(createFromCrawled.body.candidateId);
+        assert.equal(createFromCrawled.body.status, 'DISCOVERED');
+        assert.equal(createFromCrawled.body.headline, 'Community Gathering');
+        assert.equal(createFromCrawled.body.category, 'Community');
+        assert.deepEqual(createFromCrawled.body.neighbourhoods, ['Lakeview', 'Port Credit']);
+        assert.equal(createFromCrawled.body.provenance.sourceUrl, 'https://example.com/source');
+        assert.equal(createFromCrawled.body.provenance.snapshotId, '1');
+        assert.ok(createFromCrawled.body.candidateType);
+
+        // Verify crawled content record still exists
+        const still_exists = await client.query('SELECT * FROM public.crawled_content WHERE id = 1');
+        assert.equal(still_exists.rows[0].title, 'Existing source');
     } finally {
         await client.end();
     }

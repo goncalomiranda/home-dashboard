@@ -357,3 +357,81 @@ export async function rejectCandidate(
         return rejected.state;
     });
 }
+
+export async function createCandidateFromCrawledContent(
+    crawledContentId: number,
+    details: CandidateDetails,
+): Promise<CandidateSnapshot> {
+    return inTransaction(async (client) => {
+        // Verify crawled content exists
+        const contentResult = await client.query<{ url: string; title: string; content: string }>(
+            'SELECT url, title, content FROM public.crawled_content WHERE id = $1',
+            [crawledContentId],
+        );
+
+        if (!contentResult.rows[0]) {
+            throw new Error(`Crawled content with ID ${crawledContentId} not found.`);
+        }
+
+        const { url: sourceUrl } = contentResult.rows[0];
+
+        // Generate candidate ID (using crawled_content_id as base)
+        const candidateId = `cc-${crawledContentId}-${Date.now()}`;
+
+        // Create the candidate with provenance from crawled content
+        const creation: CandidateCreation = {
+            candidateId,
+            candidateType: 'crawled',
+            headline: details.headline,
+            summary: details.summary,
+            category: details.category,
+            neighbourhoods: details.neighbourhoods,
+            provenance: {
+                sourceUrl,
+                snapshotId: String(crawledContentId),
+            },
+            startDate: details.startDate,
+            endDate: details.endDate,
+            venue: details.venue,
+            location: details.location,
+        };
+
+        const candidate = Candidate.discover(creation);
+        const snapshot = candidate.state;
+        const row = snapshotToRow(snapshot);
+
+        // Insert candidate
+        await client.query(
+            `INSERT INTO editorial.candidates
+            (id, candidate_type, headline, summary, category, status, provenance,
+             crawled_content_id, start_date, end_date, venue, location, discovered_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11, $12, $13)`,
+            [
+                row.id,
+                row.candidate_type,
+                row.headline,
+                row.summary,
+                row.category,
+                row.status,
+                row.provenance ? JSON.stringify(row.provenance) : null,
+                crawledContentId,
+                row.start_date,
+                row.end_date,
+                row.venue,
+                row.location,
+                row.discovered_at,
+            ],
+        );
+
+        // Insert neighbourhoods
+        for (const neighbourhood of row.neighbourhoods) {
+            await client.query(
+                `INSERT INTO editorial.candidate_neighbourhoods (candidate_id, neighbourhood)
+                VALUES ($1, $2)`,
+                [row.id, neighbourhood],
+            );
+        }
+
+        return snapshot;
+    });
+}

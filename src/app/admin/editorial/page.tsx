@@ -234,6 +234,11 @@ export default function EditorialReviewQueue() {
         <Layout title="Editorial review queue">
             <div className="row mb-4">
                 <div className="col-12">
+                    <div className="mb-3">
+                        <a href="/admin/editorial/create-from-crawled" className="btn btn-primary">
+                            Create from crawled content
+                        </a>
+                    </div>
                     <div className="card">
                         <div className="card-body">
                             <h5 className="mb-3">Filter candidates</h5>
