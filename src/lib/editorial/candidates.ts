@@ -183,8 +183,8 @@ async function findCandidate(
             c.category,
             c.status::text AS status,
             c.provenance,
-            c.start_date,
-            c.end_date,
+            c.start_date::text AS start_date,
+            c.end_date::text AS end_date,
             c.venue,
             c.location,
             c.discovered_at,
@@ -232,17 +232,18 @@ async function persistCandidateDetails(
             summary = $3,
             category = $4,
             provenance = $5::jsonb,
-            start_date = $6,
-            end_date = $7,
+            start_date = NULLIF($6, '')::date,
+            end_date = NULLIF($7, '')::date,
             venue = $8,
-            location = $9
+            location = $9,
+            updated_at = now()
         WHERE id = $1`,
         [
             candidate.candidateId,
             candidate.headline ?? null,
             candidate.summary ?? null,
             candidate.category ?? null,
-            JSON.stringify(candidate.provenance ?? null),
+            candidate.provenance ? JSON.stringify(candidate.provenance) : null,
             candidate.startDate ?? null,
             candidate.endDate ?? null,
             candidate.venue ?? null,
@@ -271,7 +272,8 @@ async function persistStatus(
         `UPDATE editorial.candidates
         SET status = $2,
             reviewed_at = $3,
-            rejection_reason = $4
+            rejection_reason = $4,
+            updated_at = now()
         WHERE id = $1`,
         [
             candidate.candidateId,
