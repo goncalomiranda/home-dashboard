@@ -25,6 +25,9 @@ export interface CandidateDetails {
     readonly neighbourhoods?: readonly Neighbourhood[];
     readonly provenance?: CandidateProvenance;
     readonly startDate?: string;
+    readonly endDate?: string;
+    readonly venue?: string;
+    readonly location?: string;
 }
 
 export interface CandidateCreation extends CandidateDetails {

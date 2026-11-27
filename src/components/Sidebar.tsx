@@ -16,6 +16,7 @@ export default function Sidebar({ isOpen = true }: SidebarProps) {
     { href: '/tables', icon: 'table_view', label: 'Tables' },
     { href: '/wikis', icon: 'menu_book', label: 'Wikis' },
     { href: '/admin/newsletter', icon: 'mail', label: 'Newsletter' },
+    { href: '/admin/editorial', icon: 'rate_review', label: 'Editorial Queue' },
     { href: '/billing', icon: 'receipt_long', label: 'Billing' },
     { href: '/virtual-reality', icon: 'view_in_ar', label: 'Virtual Reality' },
     { href: '/rtl', icon: 'format_textdirection_r_to_l', label: 'RTL' },

@@ -7,7 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --experimental-default-type=module --test src/domain/editorial/candidate.test.mjs"
+    "test": "node --experimental-strip-types --experimental-default-type=module --test src/domain/editorial/candidate.test.mjs src/lib/editorial/candidate-filters.test.mjs src/lib/editorial/candidate-request.test.mjs"
   },
   "dependencies": {
     "@types/pg": "^8.23.1",
