@@ -84,19 +84,24 @@ The repo includes `setup-database.sql`, which creates the required tables for:
 
 The app also reads and writes events from `core.event` via the event APIs, so that table must exist in your database as well.
 
-### Editorial candidate migration
+### Editorial and newsletter migrations
 
-The editorial queue requires `migrations/0001_editorial_candidates.sql`. This
-additive migration expects an existing `public.crawled_content` table with an
-integer `id` primary key. It does not create candidates from existing content;
-that workflow is tracked separately in HOME-19.
+The editorial queue and issue schema require these migrations in order:
 
-The migration has no automatic version ledger and must be applied only once to
-each database. It fails if the `editorial` schema already exists; investigate
-that condition rather than ignoring it. HOME-9 describes a migration and backup
-procedure, but its implementation was not found in this repository. Confirm the
-actual operational procedure, database identity, privileges, and a recoverable
-backup before changing any shared database.
+1. `migrations/0001_editorial_candidates.sql` expects an existing
+   `public.crawled_content` table with an integer `id` primary key. It does not
+   create candidates from existing content; that workflow is tracked
+   separately in HOME-19.
+2. `migrations/0002_newsletter_issues.sql` creates the `newsletter` schema and
+   issue, issue-item, and publication tables. It requires the editorial
+   candidate schema from migration 0001.
+
+These migrations have no automatic version ledger and must each be applied
+only once to each database. They fail if their schemas or constraints already
+exist; investigate that condition rather than ignoring it. HOME-9 describes a
+migration and backup procedure, but its implementation was not found in this
+repository. Confirm the actual operational procedure, database identity,
+privileges, and a recoverable backup before changing any shared database.
 
 For example, with PostgreSQL connection settings supplied through `PGHOST`,
 `PGPORT`, `PGUSER`, `PGDATABASE`, and a secure `.pgpass` file:
@@ -105,6 +110,7 @@ For example, with PostgreSQL connection settings supplied through `PGHOST`,
 umask 077
 pg_dump --format=custom --file="$HOME/pre-editorial-migration.dump"
 psql -X --set=ON_ERROR_STOP=1 --file=migrations/0001_editorial_candidates.sql
+psql -X --set=ON_ERROR_STOP=1 --file=migrations/0002_newsletter_issues.sql
 ```
 
 Do not overwrite an existing backup; choose a unique, secure backup path. First
@@ -116,11 +122,11 @@ after migration, and confirm the application role can use the `editorial`
 schema and read and write its tables. Keep backups outside the repository and,
 where appropriate, on separate storage.
 
-An opt-in integration test exercises the migration and review API against an
-**empty, disposable** database whose name begins with `test_` or ends in
-`_test`. It creates tables and test data and does not clean them up. Start the
-application with its `POSTGRES_*` settings pointing to that same database,
-then run:
+An opt-in integration test exercises both migrations, issue-schema constraints,
+and the review API against an **empty, disposable** database whose name begins
+with `test_` or ends in `_test`. It creates tables and test data and does not
+clean them up. Start the application with its `POSTGRES_*` settings pointing
+to that same database, then run:
 
 ```bash
 EDITORIAL_TEST_DATABASE_URL=postgresql://localhost/home_dashboard_test \
